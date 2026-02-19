@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FitTrack</title>
+
+<link rel="manifest" href="manifest.json">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root{
+  --bg:#f5f7fb;
+  --card:#ffffff;
+  --text:#111;
+  --muted:#6b7280;
+  --accent:#22c55e;
+}
+
+body.dark{
+  --bg:#0f1115;
+  --card:#1c1f26;
+  --text:#f9fafb;
+  --muted:#9ca3af;
+}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:var(--bg);
+  color:var(--text);
+  transition:background .3s,color .3s;
+}
+
+/* HEADER */
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:16px 24px;
+  background:rgba(255,255,255,0.8);
+  backdrop-filter:blur(10px);
+  position:sticky;
+  top:0;
+  border-bottom:1px solid #eee;
+}
+
+.logo{
+  font-weight:700;
+  font-size:20px;
+  cursor:pointer;
+}
+
+.avatar{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:#ddd;
+  cursor:pointer;
+}
+
+/* MAIN */
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:24px;
+}
+
+/* CARDS */
+.card{
+  background:var(--card);
+  border-radius:20px;
+  padding:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.05);
+  margin-bottom:20px;
+  transition:transform .25s, box-shadow .25s;
+}
+
+.card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 15px 35px rgba(0,0,0,0.08);
+}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:16px;
+}
+
+.stat{
+  text-align:center;
+}
+
+/* ACTION BUTTONS */
+.actions{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.actions button{
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  background:var(--accent);
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+}
+
+/* FOOTER */
+.footer{
+  background:#111;
+  color:#aaa;
+  padding:40px 24px;
+  margin-top:40px;
+}
+
+.footer-grid{
+  max-width:1100px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:20px;
+}
+
+.footer h4{
+  color:white;
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo" onclick="goHome()">FitTrack</div>
+
+  <div style="display:flex;align-items:center;gap:12px;">
+    <button onclick="toggleDark()" style="border:none;background:none;font-size:18px;cursor:pointer;">🌙</button>
+    <div class="avatar" onclick="goProfile()"></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="container">
+
+  <!-- CALORIE -->
+  <div class="card" style="text-align:center">
+    <canvas id="ringChart" width="200" height="200"></canvas>
+    <h3 id="remainText">0 Calories Remaining</h3>
+  </div>
+
+  <!-- TODAY -->
+  <div class="card">
+    <h3>Today Summary</h3>
+    <div class="grid">
+      <div class="stat"><p>Eaten</p><h2 id="eaten">0</h2></div>
+      <div class="stat"><p>Burned</p><h2 id="burned">0</h2></div>
+      <div class="stat"><p>Protein</p><h2 id="protein">0g</h2></div>
+      <div class="stat"><p>Remaining</p><h2 id="remain">0</h2></div>
+    </div>
+  </div>
+
+  <!-- WEEKLY -->
+  <div class="card">
+    <h3>Weekly Calories</h3>
+    <canvas id="weekChart"></canvas>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="card">
+    <h3>Quick Actions</h3>
+    <div class="actions">
+      <button onclick="goFood()">Add Food</button>
+      <button onclick="goExercise()">Add Exercise</button>
+      <button onclick="goProfile()">Profile</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-grid">
+    <div>
+      <h4>FitTrack</h4>
+      <p>Track your fitness smartly.</p>
+    </div>
+    <div>
+      <h4>Company</h4>
+      <p>About Us</p>
+      <p>Contact</p>
+      <p>Privacy Policy</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const API="https://diet-tracker-backend-myub.onrender.com";
+const userId=localStorage.getItem("userId");
+const today=new Date().toISOString().split("T")[0];
+
+/* NAVIGATION */
+function goHome(){ location.href="home.html"; }
+function goFood(){ location.href="add-food.html"; }
+function goExercise(){ location.href="add-exercise.html"; }
+function goProfile(){ location.href="profile.html"; }
+
+/* DARK MODE */
+function toggleDark(){
+  document.body.classList.toggle("dark");
+  localStorage.setItem("theme",
+    document.body.classList.contains("dark") ? "dark" : "light"
+  );
+}
+if(localStorage.getItem("theme")==="dark"){
+  document.body.classList.add("dark");
+}
+
+/* DASHBOARD DATA */
+fetch(`${API}/api/dashboard/${userId}/${today}`)
+.then(r=>r.json())
+.then(d=>{
+  document.getElementById("eaten").innerText=d.totalCalories;
+  document.getElementById("burned").innerText=d.caloriesBurned;
+  document.getElementById("protein").innerText=d.totalProtein+"g";
+  document.getElementById("remain").innerText=d.remainingCalories;
+  document.getElementById("remainText").innerText=d.remainingCalories+" Calories Remaining";
+
+  new Chart(document.getElementById("ringChart"),{
+    type:"doughnut",
+    data:{datasets:[{
+      data:[d.totalCalories,d.remainingCalories],
+      backgroundColor:["#22c55e","#e5e7eb"],
+      borderWidth:0,
+      cutout:"70%"
+    }]},
+    options:{plugins:{legend:{display:false}}}
+  });
+});
+
+/* WEEKLY */
+fetch(`${API}/api/dashboard/weekly/${userId}`)
+.then(r=>r.json())
+.then(d=>{
+  new Chart(document.getElementById("weekChart"),{
+    type:"line",
+    data:{
+      labels:d.dates.map(x=>x.slice(5)),
+      datasets:[{data:d.eaten,borderColor:"#22c55e",tension:.4}]
+    },
+    options:{plugins:{legend:{display:false}}}
+  });
+});
+
+/* SERVICE WORKER */
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js");
+}
+</script>
+
+</body>
+</html>
