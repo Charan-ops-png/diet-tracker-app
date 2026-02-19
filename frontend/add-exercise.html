@@ -69,7 +69,7 @@
       const activity = document.getElementById("activity").value;
       const caloriesBurned = document.getElementById("calories").value;
 
-      fetch("http://localhost:5000/api/exercise/add", {
+      fetch("https://diet-tracker-backend-myub.onrender.com/api/exercise/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, date: today, activity, caloriesBurned })

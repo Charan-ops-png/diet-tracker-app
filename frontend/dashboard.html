@@ -188,7 +188,7 @@
       window.location.href = "add-exercise.html";
     }
 
-    fetch(`http://localhost:5000/api/dashboard/${userId}/${today}`)
+    fetch(`https://diet-tracker-backend-myub.onrender.com/api/dashboard/${userId}/${today}`)
       .then(res => res.json())
       .then(data => {
         document.getElementById("calories").innerText = data.totalCalories;
@@ -207,7 +207,7 @@
         });
       });
       // WEEKLY CHART
-fetch(`http://localhost:5000/api/dashboard/weekly/${userId}`)
+fetch(`https://diet-tracker-backend-myub.onrender.com/api/dashboard/weekly/${userId}`)
   .then(res => res.json())
   .then(data => {
     const ctx = document.getElementById("weeklyChart");
@@ -251,7 +251,7 @@ fetch(`http://localhost:5000/api/dashboard/weekly/${userId}`)
 function saveWeight() {
   const weight = document.getElementById("weightInput").value;
 
-  fetch("http://localhost:5000/api/weight/add", {
+  fetch("https://diet-tracker-backend-myub.onrender.com/api/weight/add", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId, date: today, weight })
@@ -266,7 +266,7 @@ function saveWeight() {
 
 // LOAD WEEKLY WEIGHT CHART
 function loadWeightChart() {
-  fetch(`http://localhost:5000/api/weight/weekly/${userId}`)
+  fetch(`https://diet-tracker-backend-myub.onrender.com/api/weight/weekly/${userId}`)
     .then(res => res.json())
     .then(data => {
       const ctx = document.getElementById("weightChart");
