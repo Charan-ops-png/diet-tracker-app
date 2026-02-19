@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Diet Tracker - Dashboard</title>
+
+  <style>
+    :root {
+      --bg-dark: #0a0a0a;
+      --card-dark: rgba(20, 20, 20, 0.6);
+      --text-dark: #ffffff;
+
+      --bg-light: #f5f5f5;
+      --card-light: rgba(255, 255, 255, 0.6);
+      --text-light: #111111;
+
+      --accent: #ff2a2a;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-dark);
+      transition: 0.3s;
+    }
+
+    body.light {
+      background: var(--bg-light);
+      color: var(--text-light);
+    }
+
+    /* Top bar */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      padding: 15px 25px;
+      align-items: center;
+    }
+
+    .toggle, .logout {
+      cursor: pointer;
+      background: rgba(255,255,255,0.1);
+      padding: 8px 14px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      margin-left: 10px;
+    }
+
+    .container {
+      padding: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    /* Glass cards */
+    .card {
+      backdrop-filter: blur(20px);
+      background: var(--card-dark);
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow:
+        0 0 30px rgba(255, 0, 0, 0.15),
+        inset 0 0 15px rgba(255,255,255,0.05);
+      transition: 0.3s;
+    }
+
+    body.light .card {
+      background: var(--card-light);
+    }
+
+    h3 {
+      margin-top: 0;
+      font-size: 18px;
+      opacity: 0.8;
+    }
+
+    .value {
+      font-size: 28px;
+      font-weight: bold;
+      color: var(--accent);
+    }
+
+    .list {
+      margin-top: 30px;
+    }
+
+    .item {
+      padding: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      font-size: 14px;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ff2a2a, #b30000);
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="topbar">
+    <h2>Dashboard</h2>
+    <div>
+      <span class="toggle" onclick="toggleMode()">🌙 / ☀️</span>
+      <span class="logout" onclick="logout()">Logout</span>
+      <span class="logout" onclick="goProfile()">Profile</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h3>Calories Eaten</h3>
+      <div class="value" id="calories">0</div>
+    </div>
+
+    <div class="card">
+  <h3>Log Today’s Weight</h3>
+  <input type="number" id="weightInput" placeholder="Enter weight (kg)" />
+  <button onclick="saveWeight()">Save Weight</button>
+  <div id="weightMsg" style="margin-top:8px;font-size:14px;"></div>
+</div>
+
+    <div class="card">
+      <h3>Protein</h3>
+      <div class="value" id="protein">0g</div>
+    </div>
+
+    <div class="card">
+      <h3>Calories Burned</h3>
+      <div class="value" id="burned">0</div>
+    </div>
+
+    <div class="card">
+      <h3>Remaining Calories</h3>
+      <div class="value" id="remaining">0</div>
+    </div>
+  </div>
+
+  <div class="container">
+  <div class="card">
+    <h3>Weekly Progress</h3>
+    <h3 style="margin-top:25px;">Weight Progress</h3>
+    <canvas id="weightChart" height="120"></canvas>
+    <canvas id="weeklyChart" height="120"></canvas>
+  </div>
+</div>
+
+  <div class="container list">
+    <div class="card">
+      <h3>Foods Today</h3>
+      <div id="foodList"></div>
+      <button onclick="goAddFood()">Add Food</button>
+    </div>
+
+    <div class="card">
+      <h3>Exercises Today</h3>
+      <div id="exerciseList"></div>
+      <button onclick="goExercise()">Add Exercise</button>
+    </div>
+  </div>
+
+  <script>
+    const userId = localStorage.getItem("userId");
+    const today = new Date().toISOString().split("T")[0];
+
+    function toggleMode() {
+      document.body.classList.toggle("light");
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+
+    function goAddFood() {
+      window.location.href = "add-food.html";
+    }
+
+    function goExercise() {
+      window.location.href = "add-exercise.html";
+    }
+
+    fetch(`http://localhost:5000/api/dashboard/${userId}/${today}`)
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("calories").innerText = data.totalCalories;
+        document.getElementById("protein").innerText = data.totalProtein + "g";
+        document.getElementById("burned").innerText = data.caloriesBurned;
+        document.getElementById("remaining").innerText = data.remainingCalories;
+
+        const foodList = document.getElementById("foodList");
+        data.foods.forEach(f => {
+          foodList.innerHTML += `<div class="item">${f.food.name} × ${f.quantity}</div>`;
+        });
+
+        const exerciseList = document.getElementById("exerciseList");
+        data.exercises.forEach(e => {
+          exerciseList.innerHTML += `<div class="item">${e.activity} - ${e.caloriesBurned} cal</div>`;
+        });
+      });
+      // WEEKLY CHART
+fetch(`http://localhost:5000/api/dashboard/weekly/${userId}`)
+  .then(res => res.json())
+  .then(data => {
+    const ctx = document.getElementById("weeklyChart");
+
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: data.dates.map(d => d.slice(5)), // show MM-DD
+        datasets: [
+          {
+            label: "Calories Eaten",
+            data: data.eaten,
+            borderColor: "#ff2a2a",
+            backgroundColor: "rgba(255,42,42,0.2)",
+            tension: 0.4,
+          },
+          {
+            label: "Calories Burned",
+            data: data.burned,
+            borderColor: "#00e5ff",
+            backgroundColor: "rgba(0,229,255,0.2)",
+            tension: 0.4,
+          }
+        ]
+      },
+      options: {
+        plugins: {
+          legend: { labels: { color: "white" } }
+        },
+        scales: {
+          x: { ticks: { color: "white" } },
+          y: { ticks: { color: "white" } }
+        }
+      }
+    });
+  });   
+  function goProfile() {
+  window.location.href = "profile.html";
+}
+// SAVE TODAY'S WEIGHT
+function saveWeight() {
+  const weight = document.getElementById("weightInput").value;
+
+  fetch("http://localhost:5000/api/weight/add", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, date: today, weight })
+  })
+  .then(res => res.json())
+  .then(() => {
+    document.getElementById("weightMsg").innerText = "Weight saved!";
+    loadWeightChart(); // refresh chart
+  });
+}
+
+
+// LOAD WEEKLY WEIGHT CHART
+function loadWeightChart() {
+  fetch(`http://localhost:5000/api/weight/weekly/${userId}`)
+    .then(res => res.json())
+    .then(data => {
+      const ctx = document.getElementById("weightChart");
+
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: data.dates.map(d => d.slice(5)),
+          datasets: [{
+            label: "Weight (kg)",
+            data: data.weights,
+            borderColor: "#00ff88",
+            backgroundColor: "rgba(0,255,136,0.2)",
+            tension: 0.4,
+            spanGaps: true
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { labels: { color: "white" } }
+          },
+          scales: {
+            x: { ticks: { color: "white" } },
+            y: { ticks: { color: "white" } }
+          }
+        }
+      });
+    });
+}
+
+// load chart on page start
+loadWeightChart();
+  </script>
+
+</body>
+</html>

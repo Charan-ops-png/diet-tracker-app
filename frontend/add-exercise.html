@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Add Exercise</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: #0a0a0a;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .card {
+      backdrop-filter: blur(20px);
+      background: rgba(20,20,20,0.6);
+      border-radius: 20px;
+      padding: 40px;
+      width: 360px;
+      box-shadow: 0 0 30px rgba(255,0,0,0.2);
+    }
+
+    h2 { text-align: center; }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 10px;
+      border: none;
+      background: rgba(255,255,255,0.08);
+      color: white;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg,#ff2a2a,#b30000);
+      color: white;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Add Exercise</h2>
+
+    <input type="text" id="activity" placeholder="Activity (Walking, Gym...)" />
+    <input type="number" id="calories" placeholder="Calories Burned" />
+
+    <button onclick="addExercise()">Save Exercise</button>
+    <button onclick="goBack()">Back to Dashboard</button>
+  </div>
+
+  <script>
+    const userId = localStorage.getItem("userId");
+    const today = new Date().toISOString().split("T")[0];
+
+    function addExercise() {
+      const activity = document.getElementById("activity").value;
+      const caloriesBurned = document.getElementById("calories").value;
+
+      fetch("http://localhost:5000/api/exercise/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, date: today, activity, caloriesBurned })
+      })
+      .then(res => res.json())
+      .then(() => {
+        alert("Exercise saved!");
+        window.location.href = "dashboard.html";
+      });
+    }
+
+    function goBack() {
+      window.location.href = "dashboard.html";
+    }
+  </script>
+
+</body>
+</html>
