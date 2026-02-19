@@ -7,7 +7,8 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-  origin: "*",
+  origin: "https://celadon-kitsune-28a435.netlify.app",
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
 app.use(express.json());
