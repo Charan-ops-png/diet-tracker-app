@@ -19,6 +19,7 @@ app.use("/api/dashboard", require("./routes/dashboard"));
 app.use("/api/exercise", require("./routes/exercise"));
 app.use("/api/profile", require("./routes/profile"));
 app.use("/api/weight", require("./routes/weight"));
+app.use("/api/ai", require("./routes/ai"));
 
 // Test route
 app.get("/", (req, res) => {
