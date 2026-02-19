@@ -25,9 +25,9 @@ router.get("/coach/:userId", async (req, res) => {
 You are a professional fitness coach.
 
 User details:
-- Calorie goal: ${user.calorieGoal}
-- Current weight: ${user.currentWeight} kg
-- Target weight: ${user.targetWeight} kg
+- Calorie goal: ${user?.calorieGoal}
+- Current weight: ${user?.currentWeight} kg
+- Target weight: ${user?.targetWeight} kg
 - Calories eaten today: ${eaten}
 - Calories burned today: ${burned}
 
@@ -52,8 +52,12 @@ Keep it concise and structured.
     res.json({ advice: completion.choices[0].message.content });
 
   } catch (err) {
-    console.error("AI ERROR:", err);
-    res.status(500).json({ msg: "AI error" });
+    // 🔥 THIS WILL SHOW REAL ERROR IN RENDER LOGS
+    console.error("===== REAL AI ERROR =====");
+    console.error(err);
+    console.error("=========================");
+
+    res.status(500).json({ msg: "AI error", error: err.message });
   }
 });
 
